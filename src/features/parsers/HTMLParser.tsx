@@ -9,32 +9,44 @@ function HTMLParser() {
   const editorMode = useAppSelector(state => state.visualHTMLReducer.type)
   // const visualHTMLCode = useAppSelector(state => state.visualHTMLReducer.codeElements)
   const textualHTMLCode = useAppSelector(state => state.visualHTMLReducer.codeString)
+  var errors:Array<String>=[]
 
   function errorGen(code: any) { //TODO Type code
+    errors=[]
     let stream = tinyhtml.chunks(code)
-
+    validateHtmlCode()
     function validateHtmlCode() {
       const chunk = stream.next()
-      switch (chunk.type) {
+      try{
+      switch (chunk.value[0]) {
         case "startTagStart":
           validateOpeningTag()
           validateHtmlCode()
           break
+        case "newline":
+        case "space":
+        case "data":
+        case "endTagStart":
+        case "tagEnd":
+          
+          validateHtmlCode()
+          break
         // Cases: tagEnd, commentStart, plainText, EOF
         default:
-          throw("Unexpected chunk")
-      }
+          throw new Error("Unexpected chunk")
+      }}
+      catch(e){}
     }
 
     function validateOpeningTag() {
       validateAttributes()
-      const type = stream.next().type
+      const type = stream.next().value[0]
       switch (type) {
         case "tagEnd":
         case "tagEndClose":
           break
         default:
-          throw(`Expected tagEnd or tagEndClose but got ${type}`)
+          throw new Error(`Expected tagEnd or tagEndClose but got ${type}`)
       }
     }
 
@@ -48,6 +60,31 @@ function HTMLParser() {
       // attributeName, attributeAssign, attributeValueStart, attributeValueData, attributeValueEnd
     }
   }
+  function listErrors(){
+    if (editorMode === EditorType.Textual) {
+      errorGen(textualHTMLCode)
+    } else {
+      console.log("In visual mode... cannot read code yet")
+    }
+    console.log(errors.length)
+    let items:Array<any> = []
+    errors.forEach((element, index) => {
+      console.log(element)
+            items.push(renderError(element,index))
+        });
+        return (
+            <div>
+                {items}
+            </div>
+        )
+  }
+  function renderError(error:String,index:any){
+    return (
+      <div key={"error"+index}>
+          {error}
+      </div>
+  )
+  }
 
   useEffect(() => {
     if (editorMode === EditorType.Textual) {
@@ -58,7 +95,7 @@ function HTMLParser() {
   })
 
   return (
-    <></>
+    <div className={'html-parser'}>{listErrors()}</div>
   )
 }
 

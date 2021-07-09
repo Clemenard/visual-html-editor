@@ -9,6 +9,7 @@ import "ace-builds/src-noconflict/ext-language_tools"
 import 'ace-builds/webpack-resolver'
 import {useAppDispatch} from "../../hooks"
 import {updateTextual} from "../../store/features/editors/HTMLEditors"
+import HTMLParser from "../parsers/HTMLParser"
 
 interface TextualHTMLEditorProps {
   elements: string
@@ -24,6 +25,7 @@ function TextualHTMLEditor(props: TextualHTMLEditorProps) {
   let editorRef: AceEditor | null
   const dispatch = useAppDispatch()
   const onChange = () => {
+    HTMLParser()
     dispatch(updateTextual(editorRef!.editor.getValue()))
   }
   const onLoad = () => {
