@@ -6,11 +6,11 @@ import {toggleBlockDescriptionAction} from "../../store/features/blocks/blocks";
 import {Draggable} from "react-beautiful-dnd";
 import {getDragStyle} from "../../App";
 import {EditorType, TagType} from "../../editorconfig";
-import {polyfill} from "mobile-drag-drop/release";
-import {scrollBehaviourDragImageTranslateOverride} from "mobile-drag-drop/release/scroll-behaviour";
+/* import {polyfill} from "mobile-drag-drop/release"; */
+/* import {scrollBehaviourDragImageTranslateOverride} from "mobile-drag-drop/release/scroll-behaviour"; */
 import {isTouchDevice} from "../editors/TextualHTMLEditor";
 
-if (isTouchDevice()) {
+/* if (isTouchDevice()) {
   // If touch device, enable mobile-drag-drop polyfill
   polyfill({
     dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
@@ -18,7 +18,7 @@ if (isTouchDevice()) {
   })
   window.addEventListener('touchmove', function () {
   }, {passive: false});
-}
+} */
 
 function Block(props: ToolboxCategoryBlocks) {
   const cat = useAppSelector(state => state.blocksReducer.categories.find(c => c.blocks.find((b) => b.id === props.id)))
