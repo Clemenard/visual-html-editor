@@ -7,29 +7,43 @@ import tinyhtml from "tiny-html-lexer"
 // TODO Refactor to be generic parser component which will call parsing logic components for relevant lang
 function HTMLParser() {
   const editorMode = useAppSelector(state => state.visualHTMLReducer.type)
-  // const visualHTMLCode = useAppSelector(state => state.visualHTMLReducer.codeElements)
+   /* const visualHTMLCode = useAppSelector(state => state.visualHTMLReducer.codeElements) */
   const textualHTMLCode = useAppSelector(state => state.visualHTMLReducer.codeString)
   var errors:Array<String>=[]
+  var open:Array<String>=[]
 
   function errorGen(code: any) { //TODO Type code
     errors=[]
     let stream = tinyhtml.chunks(code)
     validateHtmlCode()
     function validateHtmlCode() {
+      
       const chunk = stream.next()
+      /* console.log(chunk) */
       try{
       switch (chunk.value[0]) {
         case "startTagStart":
+          open.push(chunk.value[1].substr(1))
           validateOpeningTag()
           validateHtmlCode()
           break
         case "newline":
         case "space":
         case "data":
-        case "endTagStart":
         case "tagEnd":
           
           validateHtmlCode()
+          break
+
+          case "endTagStart":
+            if(open.includes(chunk.value[1].substr(2))){
+              open.splice(open.indexOf(chunk.value[1].substr(2)),1)
+            }
+            else{
+              errors.push(`Want to close ${chunk.value[1].substr(2)} but never opened`)
+            }
+            validateOpeningTag()
+            validateHtmlCode()
           break
         // Cases: tagEnd, commentStart, plainText, EOF
         default:
@@ -41,14 +55,17 @@ function HTMLParser() {
     function validateOpeningTag() {
       validateAttributes()
       const type = stream.next().value[0]
+      console.log(type)
       switch (type) {
         case "tagEnd":
         case "tagEndClose":
           break
         default:
-          throw new Error(`Expected tagEnd or tagEndClose but got ${type}`)
+          errors.push(`Expected tagEnd or tagEndClose but got ${type}`)
+          break
       }
     }
+
 
     function validateAttributes() {
       // spaces -> attributes
